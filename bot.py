@@ -55,7 +55,6 @@ def playing_in_cities(update, context):
     print(answers_can_be)
     update.message.reply_text(answers_can_be[0].title())
     answers_can_be.clear()
-    cities_list = ['москва', 'ярославль', 'оренбург', 'донецк', 'алмааты']
 
 def main():
     mybot = Updater(settings.API_KEY, use_context=True)
