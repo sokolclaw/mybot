@@ -6,4 +6,4 @@ env/
 .DS_Store
 __pycache__/
 env/
-.cities.doc
+cities.txt
