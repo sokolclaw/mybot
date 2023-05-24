@@ -45,16 +45,24 @@ def playing_in_cities(update, context):
     with open('cities.txt', 'r') as cities:
         cities_list = cities.read().lower().split(', ')
     user_text = update.message.text.split()
-    user_text = ''.join(user_text[1:]).lower()
+    user_text = ' '.join(user_text[1:]).lower()
 
     if user_text not in cities_list:
         update.message.reply_text('Слово не подходит')
     cities_list.remove(user_text)
     alpha = user_text[-1] if user_text[-1] != 'ь' else user_text[-2]
+    if not cities_list:
+        return
+    if not cities_list[-1]:
+        cities_list = cities_list[:-1]
     answers_can_be = [city for city in cities_list if city[0] == alpha]
     print(answers_can_be)
     update.message.reply_text(answers_can_be[0].title())
     answers_can_be.clear()
+
+def calculate(update, context):
+    user_text = update.message.text
+    pass
 
 def main():
     mybot = Updater(settings.API_KEY, use_context=True)
@@ -65,6 +73,7 @@ def main():
     dp.add_handler(CommandHandler('wordcount', how_many_words))
     dp.add_handler(CommandHandler('next_fool_moon', when_fool_moon))
     dp.add_handler(CommandHandler('cities', playing_in_cities))
+    dp.add_handler(CommandHandler('calc', calculate))
     dp.add_handler(MessageHandler(Filters.text, talk_to_me))
 
     logging.info('Бот стартовал')
