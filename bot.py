@@ -61,8 +61,36 @@ def playing_in_cities(update, context):
     answers_can_be.clear()
 
 def calculate(update, context):
-    user_text = update.message.text
-    pass
+    a = user_text.replace(' ', '').replace('/calc', '')
+    parts = a.split('+')
+    for plus in range(len(parts)):
+        if '-' in parts[plus]:
+            parts[plus] = parts[plus].split('-')
+    for plus in range(len(parts)):
+        parts[plus] = precalculate(parts[plus])
+    update.message.reply_text(sum(parts))
+
+def precalculate(part):
+    if type(part) is str:
+        if '*' in part:
+            result = 1
+            for subpart in part.split('*'):
+                result *= precalculate(subpart)
+            return result
+        elif '/' in part:
+            parts = list(map(precalculate, part.split('/')))
+            result = parts[0]
+            for subpart in parts[1:]:
+                result /= subpart
+            return result
+        else:
+            return float(part)
+    elif type(part) is list:
+    
+        for i in range(len(part)):
+            part[i] = precalculate(part[i])
+        return part[0]-sum(part[1:])
+    return part
 
 def main():
     mybot = Updater(settings.API_KEY, use_context=True)
