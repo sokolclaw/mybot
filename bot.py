@@ -18,34 +18,33 @@ def talk_to_me(update, context):
     update.message.reply_text(user_text)
 
 def where_planet(update, context):
-    user_text = update.message.text.split()
+    user_text = context.args
     planets = {'марс':  ephem.Mars, 'меркурий':  ephem.Mercury, 'венера':  ephem.Venus, 'юпитер':  ephem.Jupiter,
                'нептун':  ephem.Neptune, 'сатурн':  ephem.Saturn, 'уран':  ephem.Uranus, 'плутон':  ephem.Pluto 
             }
-    planet = planets[user_text[1].lower()](datetime.date.today()) 
+    planet = planets[user_text[0].lower()](datetime.date.today()) 
     constellation = ephem.constellation(planet)
     print(constellation)
     update.message.reply_text(constellation)
 
 def how_many_words(update, context):
-    user_text = update.message.text.split()
-    if len(user_text) == 1:
+    user_text = context.args
+    if len(user_text) == 0:
         update.message.reply_text('В этом сообщении нет слов')
     else:
-        update.message.reply_text(len(user_text) - 1)
+        update.message.reply_text(len(user_text))
     print(len(user_text))
     
 def when_fool_moon(update, context):
-    user_text = update.message.text.split()
-    data = user_text[1].split('.')
+    user_text = context.args
+    data = user_text[0].split('.')
     moon = ephem.next_full_moon(f'{data[2]}-{data[1]}-{data[0]}')
     update.message.reply_text(moon)
     
 def playing_in_cities(update, context):
     with open('cities.txt', 'r') as cities:
         cities_list = cities.read().lower().split(', ')
-    user_text = update.message.text.split()
-    user_text = ' '.join(user_text[1:]).lower()
+    user_text = ' '.join(context.args).lower()
 
     if user_text not in cities_list:
         update.message.reply_text('Слово не подходит')
@@ -56,13 +55,10 @@ def playing_in_cities(update, context):
     if not cities_list[-1]:
         cities_list = cities_list[:-1]
     answers_can_be = [city for city in cities_list if city[0] == alpha]
-    print(answers_can_be)
     update.message.reply_text(answers_can_be[0].title())
     answers_can_be.clear()
 
-def calculate(update, context):
-    user_text = update.message.text
-    pass
+
 
 def main():
     mybot = Updater(settings.API_KEY, use_context=True)
