@@ -2,6 +2,7 @@ import logging
 import settings
 import ephem
 import datetime
+from random import choice
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -29,7 +30,7 @@ def where_planet(update, context):
 
 def how_many_words(update, context):
     user_text = context.args
-    if len(user_text) == 0:
+    if not len(user_text):
         update.message.reply_text('В этом сообщении нет слов')
     else:
         update.message.reply_text(len(user_text))
@@ -51,15 +52,19 @@ def playing_in_cities(update, context):
     cities_list.remove(user_text)
     alpha = user_text[-1] if user_text[-1] != 'ь' else user_text[-2]
     if not cities_list:
-        return
+        return 'Введите команду /cities и город'
     if not cities_list[-1]:
         cities_list = cities_list[:-1]
     answers_can_be = [city for city in cities_list if city[0] == alpha]
-    update.message.reply_text(answers_can_be[0].title())
+    bot_city = choice(answers_can_be)
+    cities_list.remove(bot_city)
+    update.message.reply_text(bot_city.title())
     answers_can_be.clear()
+    print(cities_list)
 
 def calculate(update, context):
-    a = user_text.replace(' ', '').replace('/calc', '')
+    user_text = ''.join(context.args)
+    a = user_text.replace(' ', '')
     parts = a.split('+')
     for plus in range(len(parts)):
         if '-' in parts[plus]:
