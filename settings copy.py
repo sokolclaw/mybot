@@ -1,0 +1,1 @@
+API_KEY = '''Put here your API KEY, from BotFather bot'''
