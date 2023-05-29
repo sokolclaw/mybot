@@ -41,26 +41,43 @@ def when_fool_moon(update, context):
     data = user_text[0].split('.')
     moon = ephem.next_full_moon(f'{data[2]}-{data[1]}-{data[0]}')
     update.message.reply_text(moon)
-    
+
+
 def playing_in_cities(update, context):
     with open('cities.txt', 'r') as cities:
         cities_list = cities.read().lower().split(', ')
     user_text = ' '.join(context.args).lower()
 
+  
     if user_text not in cities_list:
         update.message.reply_text('Слово не подходит')
+        
     cities_list.remove(user_text)
-    alpha = user_text[-1] if user_text[-1] != 'ь' else user_text[-2]
+    if 'cities' not in context.user_data:
+        context.user_data['cities'] = ['',]
+    if 'alpha' not in context.user_data:
+        context.user_data['alpha'] = ''
+    if len(context.user_data['cities']) > 2:
+        if context.user_data['alpha'] != user_text[0]:
+            return update.message.reply_text(f"Назови город на букву {context.user_data['alpha']}")
+    if user_text in context.user_data['cities']:
+        return update.message.reply_text('Этот город уже был')
+    context.user_data['cities'].append(user_text)
+    
+    context.user_data['alpha'] = user_text[-1] if user_text[-1] != 'ь' else user_text[-2]
     if not cities_list:
         return 'Введите команду /cities и город'
     if not cities_list[-1]:
         cities_list = cities_list[:-1]
-    answers_can_be = [city for city in cities_list if city[0] == alpha]
-    bot_city = choice(answers_can_be)
+        answers_can_be = [city for city in cities_list
+                          if city[0] == context.user_data['alpha'] and city not in context.user_data['cities']]
+        bot_city = choice(answers_can_be)
     cities_list.remove(bot_city)
     update.message.reply_text(bot_city.title())
+    context.user_data['cities'].append(bot_city)
     answers_can_be.clear()
-    print(cities_list)
+    context.user_data['alpha'] = bot_city[-1] if bot_city[-1] != 'ь' else bot_city[-2]
+    print(context.user_data['cities'])
 
 def calculate(update, context):
     user_text = ''.join(context.args)
