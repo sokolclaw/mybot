@@ -42,42 +42,44 @@ def when_fool_moon(update, context):
     moon = ephem.next_full_moon(f'{data[2]}-{data[1]}-{data[0]}')
     update.message.reply_text(moon)
 
-
-def playing_in_cities(update, context):
-    with open('cities.txt', 'r') as cities:
-        cities_list = cities.read().lower().split(', ')
-    user_text = ' '.join(context.args).lower()
-
-  
-    if user_text not in cities_list:
-        update.message.reply_text('Слово не подходит')
-        
-    cities_list.remove(user_text)
-    if 'cities' not in context.user_data:
-        context.user_data['cities'] = ['',]
-    if 'alpha' not in context.user_data:
-        context.user_data['alpha'] = ''
+def action_user_city(update, context, cities):
+    user_text = ' '.join(context.args).lower() 
+    if user_text not in cities:
+        update.message.reply_text('Такого слова нет в списке')
+    cities.remove(user_text)
     if len(context.user_data['cities']) > 2:
         if context.user_data['alpha'] != user_text[0]:
             return update.message.reply_text(f"Назови город на букву {context.user_data['alpha']}")
     if user_text in context.user_data['cities']:
         return update.message.reply_text('Этот город уже был')
+    context.user_data['alpha'] = user_text[-1] if user_text[-1] not in ['ь', 'ы'] else user_text[-2]
     context.user_data['cities'].append(user_text)
-    
-    context.user_data['alpha'] = user_text[-1] if user_text[-1] != 'ь' else user_text[-2]
-    if not cities_list:
-        return 'Введите команду /cities и город'
-    if not cities_list[-1]:
-        cities_list = cities_list[:-1]
-        answers_can_be = [city for city in cities_list
+    return user_text
+
+def action_bot_city(update, context, cities):
+    answers_can_be = [city for city in cities
                           if city[0] == context.user_data['alpha'] and city not in context.user_data['cities']]
-        bot_city = choice(answers_can_be)
-    cities_list.remove(bot_city)
+    bot_city = choice(answers_can_be)
+    cities.remove(bot_city)
     update.message.reply_text(bot_city.title())
     context.user_data['cities'].append(bot_city)
     answers_can_be.clear()
-    context.user_data['alpha'] = bot_city[-1] if bot_city[-1] != 'ь' else bot_city[-2]
-    print(context.user_data['cities'])
+    context.user_data['alpha'] = bot_city[-1] if bot_city[-1] not in ['ь', 'ы'] else bot_city[-2]
+
+def playing_in_cities(update, context):
+    with open('cities.txt', 'r') as cities:
+        cities_list = cities.read().lower().split(', ')
+    if 'cities' not in context.user_data:
+        context.user_data['cities'] = ['.',]
+    if 'alpha' not in context.user_data:
+        context.user_data['alpha'] = ''
+    if not cities_list[-1]:
+        cities_list = cities_list[:-1]
+    if not cities_list:
+        return 'Города закончились :('
+    action_user_city(update, context, cities_list)
+    action_bot_city(update, context, cities_list)
+
 
 def calculate(update, context):
     user_text = ''.join(context.args)
