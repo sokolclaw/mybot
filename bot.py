@@ -4,7 +4,7 @@ import ephem
 import datetime
 from random import choice
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
 
 
 logging.basicConfig(filename='bot.log', level=logging.INFO)
@@ -43,22 +43,25 @@ def when_fool_moon(update, context):
     update.message.reply_text(moon)
 
 def action_user_city(update, context, cities):
-    user_text = ' '.join(context.args).lower() 
+    user_text = update.message.text.lower()
     if user_text not in cities:
         update.message.reply_text('Такого слова нет в списке')
+        return 'error'
     cities.remove(user_text)
     if len(context.user_data['cities']) > 2:
         if context.user_data['alpha'] != user_text[0]:
-            return update.message.reply_text(f"Назови город на букву {context.user_data['alpha']}")
+            update.message.reply_text(f"Назови город на букву {context.user_data['alpha']}")
+            return 'error'
     if user_text in context.user_data['cities']:
-        return update.message.reply_text('Этот город уже был')
+        update.message.reply_text('Этот город уже был')
+        return 'error'
     context.user_data['alpha'] = user_text[-1] if user_text[-1] not in ['ь', 'ы'] else user_text[-2]
     context.user_data['cities'].append(user_text)
     return user_text
 
 def action_bot_city(update, context, cities):
     answers_can_be = [city for city in cities
-                          if city[0] == context.user_data['alpha'] and city not in context.user_data['cities']]
+                     if city[0] == context.user_data['alpha'] and city not in context.user_data['cities']]  
     bot_city = choice(answers_can_be)
     cities.remove(bot_city)
     update.message.reply_text(bot_city.title())
@@ -77,9 +80,9 @@ def playing_in_cities(update, context):
         cities_list = cities_list[:-1]
     if not cities_list:
         return 'Города закончились :('
-    action_user_city(update, context, cities_list)
-    action_bot_city(update, context, cities_list)
-
+    user_answer = action_user_city(update, context, cities_list)
+    if user_answer != 'error':
+        action_bot_city(update, context, cities_list)
 
 def calculate(update, context):
     user_text = ''.join(context.args)
@@ -114,18 +117,34 @@ def precalculate(part):
         return part[0]-sum(part[1:])
     return part
 
+def start_playing(update, context):
+    update.message.reply_text('Начинаем игру в города.  Называй первый город\n'
+                              'Чтобы остановить игру введи /stop')
+    return 'answer'
+
+def stop_playing(update, context):
+    user_text = update.message.text
+    logging.info('Остановка игры')
+    update.message.reply_text('Останавливаем игру')
+    return ConversationHandler.END
 
 def main():
     mybot = Updater(settings.API_KEY, use_context=True)
     
+    cities_handler = ConversationHandler(
+        entry_points=[CommandHandler('cities', start_playing)],
+        states={'answer': [MessageHandler(Filters.text & ~Filters.command, playing_in_cities)]},
+        fallbacks=[CommandHandler('stop', stop_playing)],)
+
     dp = mybot.dispatcher
     dp.add_handler(CommandHandler('start', greet_user))
     dp.add_handler(CommandHandler('planet', where_planet))
     dp.add_handler(CommandHandler('wordcount', how_many_words))
     dp.add_handler(CommandHandler('next_fool_moon', when_fool_moon))
-    dp.add_handler(CommandHandler('cities', playing_in_cities))
+    dp.add_handler(cities_handler)
     dp.add_handler(CommandHandler('calc', calculate))
     dp.add_handler(MessageHandler(Filters.text, talk_to_me))
+ 
 
     logging.info('Бот стартовал')
     mybot.start_polling()
