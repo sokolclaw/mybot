@@ -8,14 +8,14 @@ from telegram.ext import ConversationHandler
 def greet_user(update, context):
     print('Вызван /start')
     update.message.reply_text('Привет, пользователь! Ты вызвал команду /start',
-                              reply_markup = show_keyboard()
+                              reply_markup = show_keyboard('base')
                               )
     
 
 def talk_to_me(update, context):
     user_text = update.message.text
     print(user_text)
-    update.message.reply_text(user_text)
+    update.message.reply_text(user_text, reply_markup = show_keyboard('base'))
 
 
 def where_planet(update, context):
@@ -26,7 +26,7 @@ def where_planet(update, context):
     planet = planets[user_text[0].lower()](datetime.date.today()) 
     constellation = ephem.constellation(planet)
     print(constellation)
-    update.message.reply_text(constellation, reply_markup = show_keyboard())    
+    update.message.reply_text(constellation, reply_markup = show_keyboard('base'))    
 
 
 def how_many_words(update, context):
@@ -34,7 +34,7 @@ def how_many_words(update, context):
     if not len(user_text):
         update.message.reply_text('В этом сообщении нет слов')
     else:
-        update.message.reply_text(len(user_text), reply_markup = show_keyboard())
+        update.message.reply_text(len(user_text), reply_markup = show_keyboard('base'))
     print(len(user_text))
 
 
@@ -54,12 +54,12 @@ def calculate(update, context):
             parts[plus] = parts[plus].split('-')
     for plus in range(len(parts)):
         parts[plus] = precalculate(parts[plus])
-    update.message.reply_text(sum(parts), reply_markup = show_keyboard())
+    update.message.reply_text(sum(parts), reply_markup = show_keyboard('base'))
 
 
 def start_playing(update, context):
     update.message.reply_text('Начинаем игру в города.  Называй первый город\n'
-                              'Чтобы остановить игру введи /stop')
+                              'Чтобы остановить игру введи /stop', reply_markup = show_keyboard('cities'))
     return 'answer'
 
 
@@ -81,7 +81,7 @@ def playing_in_cities(update, context):
 def stop_playing(update, context):
     user_text = update.message.text
     logging.info('Остановка игры')
-    update.message.reply_text('Останавливаем игру')
+    update.message.reply_text('Останавливаем игру', reply_markup = show_keyboard('base'))
     return ConversationHandler.END
 
 
@@ -89,5 +89,5 @@ def user_coordinates(update, context):
     coords = update.message.location
     update.message.reply_text(
         f'Ваши координаты: {coords}',
-        reply_markup = show_keyboard()
+        reply_markup = show_keyboard('base')
         )

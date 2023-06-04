@@ -3,10 +3,13 @@ from random import choice
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, KeyboardButton
 
 
-
-def show_keyboard():
-    return ReplyKeyboardMarkup([['Сыграем в города?', KeyboardButton('Мои координаты', request_location=True)]])
-    
+def show_keyboard(status):
+    if status == 'base':
+        return ReplyKeyboardMarkup(
+            [['Сыграем в города?', KeyboardButton('Мои координаты', request_location=True)]]
+                                   )
+    if status == 'cities':
+        return ReplyKeyboardMarkup([['Остановить игру']])
 
 def action_user_city(update, context, cities):
     user_text = update.message.text.lower()
@@ -17,10 +20,10 @@ def action_user_city(update, context, cities):
     if len(context.user_data['cities']) > 2:
         if context.user_data['alpha'] != user_text[0]:
             update.message.reply_text(
-                f"Назови город на букву {context.user_data['alpha']}", reply_markup = show_keyboard())
+                f"Назови город на букву {context.user_data['alpha']}", reply_markup = show_keyboard('cities'))
             raise ValueError
     if user_text in context.user_data['cities']:
-        update.message.reply_text('Этот город уже был', reply_markup = show_keyboard())
+        update.message.reply_text('Этот город уже был', reply_markup = show_keyboard('cities'))
         raise ValueError
     context.user_data['alpha'] = user_text[-1] if user_text[-1] not in ['ь', 'ы'] else user_text[-2]
     context.user_data['cities'].append(user_text)
@@ -32,7 +35,7 @@ def action_bot_city(update, context, cities):
                      if city[0] == context.user_data['alpha'] and city not in context.user_data['cities']]  
     bot_city = choice(answers_can_be)
     cities.remove(bot_city)
-    update.message.reply_text(bot_city.title())
+    update.message.reply_text(bot_city.title(), reply_markup = show_keyboard('cities'))
     context.user_data['cities'].append(bot_city)
     answers_can_be.clear()
     context.user_data['alpha'] = bot_city[-1] if bot_city[-1] not in ['ь', 'ы'] else bot_city[-2]

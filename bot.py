@@ -16,8 +16,13 @@ def main():
             CommandHandler('cities', start_playing),
             MessageHandler(Filters.regex('(Сыграем в города?)'), start_playing)
             ],
-        states={'answer': [MessageHandler(Filters.text & ~Filters.command, playing_in_cities)]},
-        fallbacks=[CommandHandler('stop', stop_playing)],)
+        states={
+            'answer': [MessageHandler(Filters.text & ~Filters.command & ~Filters.regex('(Остановить игру)'), playing_in_cities)]
+            },
+        fallbacks=[
+            CommandHandler('stop', stop_playing),
+            MessageHandler(Filters.regex('(Остановить игру)'), stop_playing)]
+        ,)
 
     dp = mybot.dispatcher
     dp.add_handler(CommandHandler('start', greet_user))
