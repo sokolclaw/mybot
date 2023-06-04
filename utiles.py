@@ -12,16 +12,16 @@ def action_user_city(update, context, cities):
     user_text = update.message.text.lower()
     if user_text not in cities:
         update.message.reply_text('Такого слова нет в списке')
-        return 'error'
+        raise ValueError
     cities.remove(user_text)
     if len(context.user_data['cities']) > 2:
         if context.user_data['alpha'] != user_text[0]:
             update.message.reply_text(
                 f"Назови город на букву {context.user_data['alpha']}", reply_markup = show_keyboard())
-            return 'error'
+            raise ValueError
     if user_text in context.user_data['cities']:
         update.message.reply_text('Этот город уже был', reply_markup = show_keyboard())
-        return 'error'
+        raise ValueError
     context.user_data['alpha'] = user_text[-1] if user_text[-1] not in ['ь', 'ы'] else user_text[-2]
     context.user_data['cities'].append(user_text)
     return user_text

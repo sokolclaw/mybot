@@ -74,9 +74,8 @@ def playing_in_cities(update, context):
         cities_list = cities_list[:-1]
     if not cities_list:
         return 'Города закончились :('
-    user_answer = action_user_city(update, context, cities_list)
-    if user_answer != 'error':
-        action_bot_city(update, context, cities_list)
+    action_user_city(update, context, cities_list)
+    action_bot_city(update, context, cities_list)
 
 
 def stop_playing(update, context):
