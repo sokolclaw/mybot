@@ -19,7 +19,7 @@ git clone https://github.com/sokolclaw/mybot
 pip install -r requirments.txt
 ```
  
-### Настройка
+### Setting
 
 Create a virtual environment
 '''
