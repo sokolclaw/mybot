@@ -60,22 +60,25 @@ def calculate(update, context):
 def start_playing(update, context):
     update.message.reply_text('Начинаем игру в города.  Называй первый город\n'
                               'Чтобы остановить игру введи /stop', reply_markup = show_keyboard('cities'))
+    with open('cities.txt', 'r') as cities:
+        context.user_data['start_cities'] = cities.read().lower().split(', ')
+    if 'cities' not in context.user_data:
+        context.user_data['cities'] = []
+    if 'alpha' not in context.user_data:
+        context.user_data['alpha'] = ''
+
     return 'answer'
 
 
 def playing_in_cities(update, context):
-    with open('cities.txt', 'r') as cities:
-        cities_list = cities.read().lower().split(', ')
-    if 'cities' not in context.user_data:
-        context.user_data['cities'] = ['.',]
-    if 'alpha' not in context.user_data:
-        context.user_data['alpha'] = ''
-    if not cities_list[-1]:
-        cities_list = cities_list[:-1]
-    if not cities_list:
+
+    
+    if not context.user_data['start_cities'][-1]:
+        context.user_data['start_cities'] = context.user_data['start_cities'][:-1]
+    if not context.user_data['start_cities']:
         return 'Города закончились :('
-    action_user_city(update, context, cities_list)
-    action_bot_city(update, context, cities_list)
+
+    action_user_city(update, context)
 
 
 def stop_playing(update, context):

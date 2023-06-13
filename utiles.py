@@ -11,34 +11,36 @@ def show_keyboard(status):
     if status == 'cities':
         return ReplyKeyboardMarkup([['Остановить игру']])
 
-def action_user_city(update, context, cities):
+def action_with_city(update, context, city):
+
+    context.user_data['start_cities'].remove(city)
+    context.user_data['alpha'] = city[-1] if city[-1] not in ['ь', 'ы'] else city[-2]
+    context.user_data['cities'].append(city)
+
+
+def action_user_city(update, context):
+
     user_text = update.message.text.lower()
-    if user_text not in cities:
-        update.message.reply_text('Такого слова нет в списке')
-        raise ValueError
-    cities.remove(user_text)
-    if len(context.user_data['cities']) > 2:
+    if user_text not in context.user_data['start_cities'] and user_text not in context.user_data['cities']:
+        return update.message.reply_text('Я такого города не знаю')
+    if len(context.user_data['cities']) > 1:
         if context.user_data['alpha'] != user_text[0]:
-            update.message.reply_text(
-                f"Назови город на букву {context.user_data['alpha']}", reply_markup = show_keyboard('cities'))
-            raise ValueError
+            return update.message.reply_text(
+                f"Назови город на букву {context.user_data['alpha']}")
     if user_text in context.user_data['cities']:
-        update.message.reply_text('Этот город уже был', reply_markup = show_keyboard('cities'))
-        raise ValueError
-    context.user_data['alpha'] = user_text[-1] if user_text[-1] not in ['ь', 'ы'] else user_text[-2]
-    context.user_data['cities'].append(user_text)
-    return user_text
+        return update.message.reply_text('Этот город уже был', reply_markup = show_keyboard('cities'))
+    
+    action_with_city(update, context, user_text)
+    action_bot_city(update, context)
 
+def action_bot_city(update, context):
 
-def action_bot_city(update, context, cities):
-    answers_can_be = [city for city in cities
+    answers_can_be = [city for city in context.user_data['start_cities']
                      if city[0] == context.user_data['alpha'] and city not in context.user_data['cities']]  
     bot_city = choice(answers_can_be)
-    cities.remove(bot_city)
     update.message.reply_text(bot_city.title(), reply_markup = show_keyboard('cities'))
-    context.user_data['cities'].append(bot_city)
+    action_with_city(update, context, bot_city)
     answers_can_be.clear()
-    context.user_data['alpha'] = bot_city[-1] if bot_city[-1] not in ['ь', 'ы'] else bot_city[-2]
 
 
 def precalculate(part):
